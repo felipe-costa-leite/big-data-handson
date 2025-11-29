@@ -28,4 +28,4 @@ jobs:
 
       - name: Deploy para S3 (sync)
         run: |
-          aws s3 sync ./src s3://${{ secrets.S3_BUCKET }} --delete
+          aws s3 sync ./src s3://${{ secrets.S3_BUCKET }}/artifacts/ --delete
