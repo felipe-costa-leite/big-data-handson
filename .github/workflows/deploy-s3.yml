@@ -20,6 +20,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Instalar AWS CLI (via apt)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+          aws --version
+
       - name: Deploy para S3 (sync)
         run: |
-          aws s3 sync ./src ${{ secrets.S3_BUCKET }} --delete
+          aws s3 sync ./src s3://${{ secrets.S3_BUCKET }} --delete
