@@ -2,7 +2,7 @@
 set -e
 
 sudo yum update -y
-sudo yum install -y unzip curl awscli
+sudo yum install -y curl zip unzip mlocate awscli --allowerasing
 
 TERRAFORM_VERSION="1.9.5"
 curl -Lo terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
