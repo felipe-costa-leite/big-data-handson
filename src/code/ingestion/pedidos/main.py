@@ -10,9 +10,10 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
 
 BUCKET_NAME = "aws-s3-dados-data-lake"
-S3_PREFIX = "landing/batch/pedidos/"
+
 
 DATA_HOJE = datetime.now().strftime("%Y-%m-%d")
+S3_PREFIX = f"landing/batch/pedidos/{DATA_HOJE}/"
 LOCAL_CSV_FILENAME = f"pedidos_{DATA_HOJE}.csv"
 
 NUM_PEDIDOS_POR_DIA = 1000

@@ -8,7 +8,7 @@ resource "aws_kinesis_firehose_delivery_stream" "aws-kinesis-firehose-eventos-ha
     custom_time_zone = "America/Sao_Paulo"
 
 
-    prefix              = "landing/streaming/eventos/!{timestamp:yyyy-MM-dd}"
+    prefix              = "landing/streaming/eventos/!{timestamp:yyyy-MM-dd}/"
     error_output_prefix = "landing/streaming/eventos_errors/!{firehose:error-output-type}/"
 
     buffering_interval = 60
