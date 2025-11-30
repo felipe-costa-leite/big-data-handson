@@ -26,8 +26,8 @@ landing_visitas_path = f"s3://{bucket}/landing/streaming/visitas/"
 bronze_pedidos_path = f"s3://{bucket}/bronze/pedidos"
 bronze_visitas_path = f"s3://{bucket}/bronze/visitas"
 
-checkpoint_visitas_path = f"s3://{bucket}/checkpoints/bronze/visitas/"
-schema_visitas_path = f"s3://{bucket}/schemaLocation/bronze/visitas/"
+checkpoint_visitas_path = f"s3://{bucket}/landing/checkpoints/bronze/visitas/"
+schema_visitas_path     = f"s3://{bucket}/landing/schema/bronze/visitas/"
 
 df_pedidos_landing = (
     spark.read
@@ -42,7 +42,6 @@ df_pedidos_bronze = (
     .withColumn("data_pedido", col("data_pedido").cast("date"))
 )
 
-
 (
     df_pedidos_bronze.write
     .format("delta")
@@ -51,11 +50,13 @@ df_pedidos_bronze = (
     .save(bronze_pedidos_path)
 )
 
+
 df_visitas_stream = (
     spark.readStream
     .format("cloudFiles")
     .option("cloudFiles.format", "json")
     .option("cloudFiles.inferColumnTypes", "true")
+    .option("cloudFiles.schemaLocation", schema_visitas_path)
     .load(landing_visitas_path)
 )
 
@@ -64,7 +65,6 @@ df_visitas_bronze = (
     .withColumn("event_time", to_timestamp(col("event_time")))
     .withColumn("cliente_id", col("cliente_id").cast("int"))
 )
-
 
 query = (
     df_visitas_bronze.writeStream
@@ -75,6 +75,7 @@ query = (
     .trigger(availableNow=True)
     .start(bronze_visitas_path)
 )
+
 
 query.awaitTermination()
 

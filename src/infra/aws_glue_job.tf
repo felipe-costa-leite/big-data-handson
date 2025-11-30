@@ -1,5 +1,5 @@
-resource "aws_glue_job" "aws-glue-job-ingestion-pedidos-handson-bigdata" {
-  name     = "aws-glue-job-ingestion-pedidos-handson-bigdata"
+resource "aws_glue_job" "aws-glue-job-bronze-handson-bigdata" {
+  name     = "aws-glue-job-bronze-handson-bigdata"
   role_arn = aws_iam_role.aws-iam-role-glue-handson-bigdata.arn
 
   glue_version      = "4.0"
@@ -9,7 +9,7 @@ resource "aws_glue_job" "aws-glue-job-ingestion-pedidos-handson-bigdata" {
 
   command {
     name            = "glueetl"
-    script_location = "s3://aws-s3-dados-data-lake/artifacts/code/ingestion/pedidos/main.py"
+    script_location = "s3://aws-s3-dados-data-lake/artifacts/code/bronze/main.py"
     python_version  = "3"
   }
 
@@ -18,13 +18,13 @@ resource "aws_glue_job" "aws-glue-job-ingestion-pedidos-handson-bigdata" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-glue-datacatalog"          = "true"
-    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/ingestion-pedidos/"
+    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/bronze/"
   }
 
   tags = {
-    Name    = "aws-glue-job-ingestion-pedidos-handson-bigdata"
+    Name    = "aws-glue-job-bronze-handson-bigdata"
     Project = "handson-bigdata"
-    Type    = "ingestion"
+    Type    = "bronze"
   }
 }
 
@@ -58,8 +58,8 @@ resource "aws_glue_job" "aws-glue-job-dataquality-handson-bigdata" {
   }
 }
 
-resource "aws_glue_job" "aws-glue-job-store-handson-bigdata" {
-  name     = "aws-glue-job-store-handson-bigdata"
+resource "aws_glue_job" "aws-glue-job-silver-handson-bigdata" {
+  name     = "aws-glue-job-silver-handson-bigdata"
   role_arn = aws_iam_role.aws-iam-role-glue-handson-bigdata.arn
 
   glue_version      = "4.0"
@@ -69,7 +69,7 @@ resource "aws_glue_job" "aws-glue-job-store-handson-bigdata" {
 
   command {
     name            = "glueetl"
-    script_location = "s3://aws-s3-dados-data-lake/artifacts/code/store/main.py"
+    script_location = "s3://aws-s3-dados-data-lake/artifacts/code/silver/main.py"
     python_version  = "3"
   }
 
@@ -78,12 +78,42 @@ resource "aws_glue_job" "aws-glue-job-store-handson-bigdata" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-glue-datacatalog"          = "true"
-    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/store/"
+    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/silver/"
   }
 
   tags = {
-    Name    = "aws-glue-job-store-handson-bigdata"
+    Name    = "aws-glue-job-silver-handson-bigdata"
     Project = "handson-bigdata"
-    Type    = "store"
+    Type    = "silver"
+  }
+}
+
+resource "aws_glue_job" "aws-glue-job-gold-handson-bigdata" {
+  name     = "aws-glue-job-gold-handson-bigdata"
+  role_arn = aws_iam_role.aws-iam-role-glue-handson-bigdata.arn
+
+  glue_version      = "4.0"
+  number_of_workers = 2
+  worker_type       = "G.1X"
+  max_retries       = 0
+
+  command {
+    name            = "glueetl"
+    script_location = "s3://aws-s3-dados-data-lake/artifacts/code/gold/main.py"
+    python_version  = "3"
+  }
+
+  default_arguments = {
+    "--job-language"                     = "python"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-metrics"                   = "true"
+    "--enable-glue-datacatalog"          = "true"
+    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/gold/"
+  }
+
+  tags = {
+    Name    = "aws-glue-job-gold-handson-bigdata"
+    Project = "handson-bigdata"
+    Type    = "gold"
   }
 }
