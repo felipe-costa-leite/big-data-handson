@@ -13,9 +13,5 @@
 
 
 output "firehose_name" {
-  value = aws_kinesis_firehose_delivery_stream.aws-kinesis-firehose-visitas-handson-bigdata.name
-}
-
-output "glue_job_ingestion_name" {
-  value = aws_glue_job.aws-glue-job-ingestion-pedidos-handson-bigdata.name
+  value = aws_kinesis_firehose_delivery_stream.aws-kinesis-firehose-eventos-handson-bigdata.name
 }

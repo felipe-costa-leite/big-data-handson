@@ -12,10 +12,8 @@ terraform -version
 
 mkdir -p /opt/terraform/handson-bigdata
 cd /opt/terraform/handson-bigdata
-
-
 aws s3 sync s3://aws-s3-dados-data-lake/artifacts/infra/ .
 
 terraform init -input=false
-
+terraform plan
 terraform apply -auto-approve
