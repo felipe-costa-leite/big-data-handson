@@ -1,60 +1,88 @@
-import boto3
-import json
-import random
-import time
+import csv
 import os
-from datetime import datetime, timezone
+import random
+from datetime import datetime, timedelta
+import boto3
 
-FIREHOSE_STREAM_NAME = "aws-kenissis"
-
-AWS_ACCESS_KEY_ID     = os.getenv("AWS_ACCESS_KEY_ID_BIG_DATA")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID_BIG_DATA")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY_BIG_DATA")
-AWS_REGION            = os.getenv("AWS_REGION", "us-east-1")
-
-client = boto3.client(
-    "firehose",
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_REGION,
-)
-
-PAGINAS = ["/home", "/busca", "/produto/123", "/produto/456", "/carrinho", "/checkout"]
-CANAIS = ["organico", "pago", "email", "social"]
-DISPOSITIVOS = ["desktop", "mobile"]
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
 
-def gerar_evento():
-    agora = datetime.now(timezone.utc)
-    evento = {
-        "event_time": agora.isoformat(),
-        "cliente_id": random.randint(100, 999),
-        "pagina": random.choice(PAGINAS),
-        "canal": random.choice(CANAIS),
-        "dispositivo": random.choice(DISPOSITIVOS),
-        "session_id": f"sess-{random.randint(100000, 999999)}",
+BUCKET_NAME = "aws-s3-dados-data-lake"
+S3_PREFIX = "landing/batch/pedidos/"
+
+DATA_HOJE = datetime.now().strftime("%Y-%m-%d")
+LOCAL_CSV_FILENAME = f"pedidos_{DATA_HOJE}.csv"
+
+NUM_PEDIDOS_POR_DIA = 1000
+
+NUM_DIAS = 5
+
+CANAIS_VENDA = ["organico", "pago", "email", "social"]
+CLIENTES_IDS = list(range(100, 500))
+
+
+def gerar_pedido(pedido_id: int, data_pedido: datetime) -> dict:
+    cliente_id = random.choice(CLIENTES_IDS)
+    canal_venda = random.choice(CANAIS_VENDA)
+    valor_total = round(random.uniform(30.0, 600.0), 2)
+
+    return {
+        "pedido_id": pedido_id,
+        "data_pedido": data_pedido.strftime("%Y-%m-%d"),
+        "cliente_id": cliente_id,
+        "canal_venda": canal_venda,
+        "valor_total": valor_total,
     }
-    return evento
 
 
-def enviar_evento(evento: dict):
-    data_str = json.dumps(evento) + "\n"
-    response = client.put_record(
-        DeliveryStreamName=FIREHOSE_STREAM_NAME,
-        Record={"Data": data_str.encode("utf-8")},
+def gerar_pedidos_csv(filename: str, num_pedidos_por_dia: int, num_dias: int):
+
+    hoje = datetime.now().date()
+    pedidos = []
+
+    pedido_id = 1
+    for i in range(num_dias):
+        dia = hoje - timedelta(days=i)
+        for _ in range(num_pedidos_por_dia):
+            pedidos.append(
+                gerar_pedido(
+                    pedido_id,
+                    datetime.combine(dia, datetime.min.time())
+                )
+            )
+            pedido_id += 1
+
+    pedidos = sorted(pedidos, key=lambda x: x["data_pedido"])
+
+    with open(filename, mode="w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["pedido_id", "data_pedido", "cliente_id", "canal_venda", "valor_total"],
+        )
+        writer.writeheader()
+        writer.writerows(pedidos)
+
+
+
+
+def upload_para_s3(local_path: str, bucket: str, s3_prefix: str):
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION,
     )
-    return response
+
+    s3_key = os.path.join(s3_prefix, os.path.basename(local_path)).replace("\\", "/")
+
+    s3.upload_file(local_path, bucket, s3_key)
 
 
 def main():
-    print(f"Enviando eventos para Firehose: {FIREHOSE_STREAM_NAME}")
-    try:
-        while True:
-            evento = gerar_evento()
-            enviar_evento(evento)
-            print(f"Enviado: {evento}")
-            time.sleep(0.5)  # 2 eventos por segundo (ajuste à vontade)
-    except KeyboardInterrupt:
-        print("Simulação encerrada.")
+    gerar_pedidos_csv(LOCAL_CSV_FILENAME, NUM_PEDIDOS_POR_DIA, NUM_DIAS)
+    upload_para_s3(LOCAL_CSV_FILENAME, BUCKET_NAME, S3_PREFIX)
 
 
 if __name__ == "__main__":
