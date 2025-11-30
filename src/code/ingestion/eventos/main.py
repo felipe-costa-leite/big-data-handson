@@ -56,7 +56,7 @@ def main():
 
     for i in DATES:
         for k in range(0, 1000):
-            evento = gerar_evento(event_time=i)
+            evento = gerar_evento(event_time=i.isoformat())
             enviar_evento(evento)
             print(f"Enviado: {evento}")
             time.sleep(1)
