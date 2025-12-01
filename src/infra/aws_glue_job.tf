@@ -18,7 +18,8 @@ resource "aws_glue_job" "aws-glue-job-bronze-handson-bigdata" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-glue-datacatalog"          = "true"
-    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/bronze/"
+    "--datalake-formats"                 = "delta"
+    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/gold/"
   }
 
   tags = {
@@ -48,7 +49,8 @@ resource "aws_glue_job" "aws-glue-job-dataquality-handson-bigdata" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-glue-datacatalog"          = "true"
-    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/dataquality/"
+    "--datalake-formats"                 = "delta"
+    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/gold/"
   }
 
   tags = {
@@ -78,7 +80,8 @@ resource "aws_glue_job" "aws-glue-job-silver-handson-bigdata" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-glue-datacatalog"          = "true"
-    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/silver/"
+    "--datalake-formats"                 = "delta"
+    "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/gold/"
   }
 
   tags = {
@@ -108,6 +111,7 @@ resource "aws_glue_job" "aws-glue-job-gold-handson-bigdata" {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--enable-glue-datacatalog"          = "true"
+    "--datalake-formats"                 = "delta"
     "--TempDir"                          = "s3://${var.data_lake_bucket_name}/tmp/glue/gold/"
   }
 
