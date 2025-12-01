@@ -60,16 +60,6 @@ silver_eventos_path = f"s3://{bucket}/silver/eventos"
 exception_error = None
 
 # ============================================================
-# GARANTIR DATABASE NO CATÁLOGO (opcional, mas útil)
-# ============================================================
-try:
-    logger.info("Garantindo existência do database 'silver' no catálogo.")
-    spark.sql("CREATE DATABASE IF NOT EXISTS silver")
-except Exception as err:
-    logger.exception("Erro ao criar/verificar database 'silver'.")
-    exception_error = err
-
-# ============================================================
 # PEDIDOS: BRONZE -> SILVER
 # ============================================================
 if not exception_error:
@@ -146,13 +136,6 @@ if not exception_error:
         )
 
         logger.info("Registrando tabela silver.eventos no catálogo usando LOCATION.")
-
-        spark.sql("DROP TABLE IF EXISTS silver.eventos")
-        spark.sql(f"""
-            CREATE TABLE silver.eventos
-            USING DELTA
-            LOCATION '{silver_eventos_path}'
-        """)
 
         logger.info("Bronze -> Silver: eventos concluído com sucesso.")
 

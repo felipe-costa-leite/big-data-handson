@@ -138,13 +138,6 @@ if not exception_error:
 
         logger.info("Registrando tabela gold.fact_daily_conversion no catálogo usando LOCATION.")
 
-        spark.sql(f"DROP TABLE IF EXISTS {tabela_saida}")
-        spark.sql(f"""
-            CREATE TABLE {tabela_saida}
-            USING DELTA
-            LOCATION '{gold_path}'
-        """)
-
         logger.info("Silver -> Gold (fact_daily_conversion) concluído com sucesso.")
 
     except Exception as err:

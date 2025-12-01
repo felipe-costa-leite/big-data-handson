@@ -78,16 +78,6 @@ eventos_schema = StructType([
 ])
 
 # ============================================================
-# GARANTIR DATABASE NO CATÁLOGO (opcional, mas útil)
-# ============================================================
-try:
-    logger.info("Garantindo existência do database 'bronze' no catálogo.")
-    spark.sql("CREATE DATABASE IF NOT EXISTS bronze")
-except Exception as err:
-    logger.exception("Erro ao criar/verificar database 'bronze'.")
-    exception_error = err
-
-# ============================================================
 # BATCH: PEDIDOS (CSV landing -> Delta bronze)
 # ============================================================
 try:
@@ -118,20 +108,6 @@ try:
         .save(bronze_pedidos_path)
     )
 
-    query = """DROP TABLE IF EXISTS bronze.pedidos"""
-
-    logger.info(f"QueryDropTable: {query}")
-
-    spark.sql(query)
-
-    query = f"""
-                CREATE TABLE bronze.pedidos
-                USING DELTA
-                LOCATION '{bronze_pedidos_path}'
-            """
-
-    spark.sql(query)
-
     logger.info("Batch pedidos -> bronze concluído com sucesso.")
 
 except Exception as err:
@@ -143,7 +119,6 @@ except Exception as err:
 # ============================================================
 try:
     logger.info(f"Inicializando streaming de eventos a partir de: {landing_eventos_path}")
-
     df_eventos_stream = (
         spark.readStream
         .format("json")
@@ -173,20 +148,6 @@ try:
     )
 
     query.awaitTermination()
-
-    query = """DROP TABLE IF EXISTS bronze.eventos"""
-
-    logger.info(f"QueryDropTable: {query}")
-
-    spark.sql(query)
-
-    query = f"""
-                    CREATE TABLE bronze.eventos
-                    USING DELTA
-                    LOCATION '{bronze_eventos_path}'
-                """
-
-    spark.sql(query)
 
     logger.info("Streaming eventos -> bronze (availableNow) concluído com sucesso.")
 
