@@ -51,7 +51,7 @@ resource "aws_iam_role" "aws-iam-role-emr-instance-profile" {
 }
 
 resource "aws_iam_role" "aws-iam-role-emr-service-profile" {
-  name = "aws-iam-role-emr-instance-profile"
+  name = "aws-iam-role-emr-service-profile"
   assume_role_policy = jsonencode({
     "Statement" : [
       {
