@@ -92,13 +92,6 @@ if not exception_error:
 
         logger.info("Registrando tabela silver.pedidos no catálogo usando LOCATION.")
 
-        spark.sql("DROP TABLE IF EXISTS silver.pedidos")
-        spark.sql(f"""
-            CREATE TABLE silver.pedidos
-            USING DELTA
-            LOCATION '{silver_pedidos_path}'
-        """)
-
         logger.info("Bronze -> Silver: pedidos concluído com sucesso.")
 
     except Exception as err:
