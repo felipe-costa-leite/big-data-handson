@@ -101,6 +101,8 @@ try:
 
     logger.info(f"Gravando pedidos em Delta na bronze: {bronze_pedidos_path}")
 
+    logger.info(f"{df_pedidos_bronze.show()}")
+
     (
         df_pedidos_bronze.write
         .format("delta")
