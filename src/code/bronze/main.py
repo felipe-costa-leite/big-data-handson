@@ -82,9 +82,9 @@ visitas_schema = StructType([
 # ============================================================
 try:
     logger.info("Garantindo existência do database 'bronze' no catálogo.")
-    spark.sql("CREATE DATABASE IF NOT EXISTS silver")
+    spark.sql("CREATE DATABASE IF NOT EXISTS bronze")
 except Exception as err:
-    logger.exception("Erro ao criar/verificar database 'silver'.")
+    logger.exception("Erro ao criar/verificar database 'bronze'.")
     exception_error = err
 
 # ============================================================
