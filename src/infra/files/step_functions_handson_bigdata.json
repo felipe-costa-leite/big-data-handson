@@ -56,7 +56,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "cluster",
+              "client",
               "--conf",
               "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
               "--conf",
@@ -84,7 +84,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "cluster",
+              "client",
               "--conf",
               "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
               "--conf",
@@ -112,7 +112,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "cluster",
+              "client",
               "--conf",
               "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
               "--conf",
