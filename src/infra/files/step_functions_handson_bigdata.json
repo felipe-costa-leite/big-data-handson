@@ -1,18 +1,26 @@
 {
-  "Comment": "Pipeline EMR: cria cluster, roda step Spark e termina cluster",
-  "StartAt": "CreateEmrCluster",
+  "Comment": "Pipeline EMR",
+  "StartAt": "CreateCluster",
   "States": {
-    "CreateEmrCluster": {
+    "CreateCluster": {
       "Type": "Task",
       "Resource": "arn:aws:states:::elasticmapreduce:createCluster.sync",
       "Parameters": {
-        "Name": "emr-handson-bigdata",
+        "Name": "${emr_cluster_name}",
         "ReleaseLabel": "${emr_release_label}",
         "Applications": [
-          { "Name": "Hadoop" },
-          { "Name": "Ganglia" },
-          { "Name": "Hive" },
-          { "Name": "Spark" }
+          {
+            "Name": "Hadoop"
+          },
+          {
+            "Name": "Ganglia"
+          },
+          {
+            "Name": "Hive"
+          },
+          {
+            "Name": "Spark"
+          }
         ],
         "LogUri": "s3://${emr_log_bucket}/${emr_log_prefix}",
         "VisibleToAllUsers": true,
@@ -33,15 +41,15 @@
         }
       },
       "ResultPath": "$.CreateClusterResult",
-      "Next": "AddSparkStepPipeline"
+      "Next": "AddStepLanding2Bronze"
     },
-    "AddSparkStepPipeline": {
+    "AddStepLanding2Bronze": {
       "Type": "Task",
       "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
       "Parameters": {
         "ClusterId.$": "$.CreateClusterResult.ClusterId",
         "Step": {
-          "Name": "spark-pipeline-bronze-silver-gold",
+          "Name": "spark-pipeline-landing-to-bronze",
           "ActionOnFailure": "CANCEL_AND_WAIT",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -55,12 +63,68 @@
               "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog",
               "--packages",
               "io.delta:delta-core_2.12:2.4.0",
-              "${emr_pipeline_script_s3}"
+              "${bronze_script_path}"
             ]
           }
         }
       },
-      "ResultPath": "$.SparkStepResult",
+      "ResultPath": "$.SparkStepLanding2BronzeResult",
+      "Next": "AddStepBronze2Silver"
+    },
+    "AddStepBronze2Silver": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Parameters": {
+        "ClusterId.$": "$.CreateClusterResult.ClusterId",
+        "Step": {
+          "Name": "spark-pipeline-bronze-to-silver",
+          "ActionOnFailure": "CANCEL_AND_WAIT",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "cluster",
+              "--conf",
+              "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
+              "--conf",
+              "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog",
+              "--packages",
+              "io.delta:delta-core_2.12:2.4.0",
+              "${silver_script_path}"
+            ]
+          }
+        }
+      },
+      "ResultPath": "$.SparkStepBronze2SilverResult",
+      "Next": "AddStepGold"
+    },
+    "AddStepGold": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Parameters": {
+        "ClusterId.$": "$.CreateClusterResult.ClusterId",
+        "Step": {
+          "Name": "spark-pipeline-gold",
+          "ActionOnFailure": "CANCEL_AND_WAIT",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "cluster",
+              "--conf",
+              "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
+              "--conf",
+              "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog",
+              "--packages",
+              "io.delta:delta-core_2.12:2.4.0",
+              "${gold_script_path}"
+            ]
+          }
+        }
+      },
+      "ResultPath": "$.SparkStepGoldResult",
       "Next": "TerminateCluster"
     },
     "TerminateCluster": {
