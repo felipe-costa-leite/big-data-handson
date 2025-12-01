@@ -9,10 +9,18 @@
         "Name": "${emr_cluster_name}",
         "ReleaseLabel": "${emr_release_label}",
         "Applications": [
-          { "Name": "Hadoop" },
-          { "Name": "Ganglia" },
-          { "Name": "Hive" },
-          { "Name": "Spark" }
+          {
+            "Name": "Hadoop"
+          },
+          {
+            "Name": "Ganglia"
+          },
+          {
+            "Name": "Hive"
+          },
+          {
+            "Name": "Spark"
+          }
         ],
         "LogUri": "s3://${emr_log_bucket}/${emr_log_prefix}",
         "VisibleToAllUsers": true,
@@ -33,6 +41,12 @@
         },
         "Configurations": [
           {
+            "Classification": "delta-defaults",
+            "Properties": {
+              "delta.enabled": true
+            }
+          },
+          {
             "Classification": "spark-hive-site",
             "Properties": {
               "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
@@ -47,10 +61,7 @@
           {
             "Classification": "spark-defaults",
             "Properties": {
-              "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
-              "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-              "spark.sql.session.timeZone": "America/Sao_Paulo",
-              "spark.submit.deployMode": "cluster"
+              "spark.submit.deployMode": "client"
             }
           },
           {
