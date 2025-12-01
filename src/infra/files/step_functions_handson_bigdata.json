@@ -43,7 +43,7 @@
           {
             "Classification": "delta-defaults",
             "Properties": {
-              "delta.enabled": true
+              "delta.enabled": "true"
             }
           },
           {
