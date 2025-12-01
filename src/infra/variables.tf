@@ -36,7 +36,7 @@ variable "emr_release_label" {
 
 variable "emr_master_instance_type" {
   type        = string
-  default     = "m5.large"
+  default     = "m5.xlarge"
   description = "Instance type do nó master (single-node cluster)"
 }
 

@@ -10,6 +10,7 @@ unzip terraform.zip
 sudo mv terraform /usr/local/bin/terraform
 terraform -version
 
+rm -rfv /opt/terraform/handson-bigdata/*
 mkdir -p /opt/terraform/handson-bigdata
 cd /opt/terraform/handson-bigdata
 aws s3 sync s3://aws-s3-dados-data-lake/artifacts/infra/ .
