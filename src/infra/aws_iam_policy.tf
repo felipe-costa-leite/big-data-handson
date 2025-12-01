@@ -67,3 +67,60 @@ resource "aws_iam_policy" "aws-iam-policy-glue-handson-bigdata" {
     ]
   })
 }
+
+resource "aws_iam_policy" "aws-iam-policy-emr-instance-profile" {
+  name = "aws-iam-policy-emr-instance-profile"
+
+
+  policy = jsonencode(
+    {
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Effect" : "Allow",
+          "Resource" : "*",
+          "Action" : ["*"]
+        }
+      ]
+    }
+
+  )
+}
+
+resource "aws_iam_policy" "aws-iam-policy-emr-service-profile" {
+  name = "aws-iam-policy-emr-service-profile"
+
+
+  policy = jsonencode(
+    {
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Effect" : "Allow",
+          "Resource" : "*",
+          "Action" : ["*"]
+        }
+      ]
+    }
+
+  )
+}
+
+resource "aws_iam_policy" "aws-iam-policy-step-functions-handson-bigdata" {
+  name = "aws-iam-policy-step-functions-handson-bigdata"
+
+
+  policy = jsonencode(
+    {
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Effect" : "Allow",
+          "Resource" : "*",
+          "Action" : ["*"]
+        }
+      ]
+    }
+
+  )
+}
