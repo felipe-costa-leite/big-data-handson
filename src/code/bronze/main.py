@@ -3,16 +3,43 @@ from awsglue.utils import getResolvedOptions
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from pyspark.context import SparkContext
+from pyspark.conf import SparkConf
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, to_timestamp
+from pyspark.sql.types import StructType, StructField, StringType
+import logging
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
-sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args["JOB_NAME"], args)
+# SETUP
 
-logger = glueContext.get_logger()
+logger = logging.Logger(__name__)
+stream = logging.StreamHandler(sys.stdout)
+stream.setLevel(logging.DEBUG)
+stream.setFormatter(logging.Formatter("[%(levelname)s]|%(asctime)s|%(message)s"))
+logger.addHandler(stream)
+
+spark_config = SparkConf()
+
+json_config = {
+    "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+    "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+    "spark.sql.session.timeZone": "America/Sao_Paulo",
+    "spark.databricks.delta.schema.autoMerge.enabled": "true",
+    "spark.databricks.delta.optimizeWrite.enabled": "true",
+    "spark.databricks.delta.autoCompact.enabled": "true",
+    "spark.databricks.delta.autoCompact.minNumFiles": "5"
+}
+
+for k, v in json_config.items():
+    spark_config.set(key=k, value=v)
+
+spark = (
+    SparkSession.builder.config(conf=spark_config)
+    .enableHiveSupport()
+    .getOrCreate()
+)
+
+
+# VARS
 
 bucket = "aws-s3-dados-data-lake"
 
@@ -23,16 +50,24 @@ bronze_pedidos_path = f"s3://{bucket}/bronze/pedidos"
 bronze_visitas_path = f"s3://{bucket}/bronze/visitas"
 
 checkpoint_visitas_path = f"s3://{bucket}/landing/checkpoints/bronze/visitas/"
-schema_visitas_path     = f"s3://{bucket}/landing/schema/bronze/visitas/"
+schema_visitas_path = f"s3://{bucket}/landing/schema/bronze/visitas/"
 
 exception_error = ""
+
+pedidos_schema = StructType([
+    StructField("pedido_id", StringType(), True),
+    StructField("data_pedido", StringType(), True),
+    StructField("cliente_id", StringType(), True),
+    StructField("canal_venda", StringType(), True),
+    StructField("valor_total", StringType(), True),
+])
 
 try:
 
     df_pedidos_landing = (
         spark.read
         .option("header", "true")
-        .option("inferSchema", "true")
+        .schema(pedidos_schema)
         .csv(landing_pedidos_path)
     )
 
@@ -79,12 +114,9 @@ try:
         .start(bronze_visitas_path)
     )
 
-
     query.awaitTermination()
 except Exception as err:
     logger.error(err)
     if not exception_error:
         exception_error = err
     raise exception_error
-
-job.commit()
