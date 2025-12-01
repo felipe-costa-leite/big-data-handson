@@ -9,18 +9,10 @@
         "Name": "${emr_cluster_name}",
         "ReleaseLabel": "${emr_release_label}",
         "Applications": [
-          {
-            "Name": "Hadoop"
-          },
-          {
-            "Name": "Ganglia"
-          },
-          {
-            "Name": "Hive"
-          },
-          {
-            "Name": "Spark"
-          }
+          { "Name": "Hadoop" },
+          { "Name": "Ganglia" },
+          { "Name": "Hive" },
+          { "Name": "Spark" }
         ],
         "LogUri": "s3://${emr_log_bucket}/${emr_log_prefix}",
         "VisibleToAllUsers": true,
@@ -38,7 +30,36 @@
               "InstanceCount": 1
             }
           ]
-        }
+        },
+        "Configurations": [
+          {
+            "Classification": "spark-hive-site",
+            "Properties": {
+              "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+            }
+          },
+          {
+            "Classification": "hive-site",
+            "Properties": {
+              "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+            }
+          },
+          {
+            "Classification": "spark-defaults",
+            "Properties": {
+              "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+              "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+              "spark.sql.session.timeZone": "America/Sao_Paulo",
+              "spark.submit.deployMode": "cluster"
+            }
+          },
+          {
+            "Classification": "spark",
+            "Properties": {
+              "maximizeResourceAllocation": "true"
+            }
+          }
+        ]
       },
       "ResultPath": "$.CreateClusterResult",
       "Next": "AddStepLanding2Bronze"
@@ -57,12 +78,6 @@
               "spark-submit",
               "--deploy-mode",
               "client",
-              "--conf",
-              "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
-              "--conf",
-              "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog",
-              "--packages",
-              "io.delta:delta-core_2.12:2.4.0",
               "${bronze_script_path}"
             ]
           }
@@ -85,12 +100,6 @@
               "spark-submit",
               "--deploy-mode",
               "client",
-              "--conf",
-              "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
-              "--conf",
-              "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog",
-              "--packages",
-              "io.delta:delta-core_2.12:2.4.0",
               "${silver_script_path}"
             ]
           }
@@ -113,12 +122,6 @@
               "spark-submit",
               "--deploy-mode",
               "client",
-              "--conf",
-              "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension",
-              "--conf",
-              "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog",
-              "--packages",
-              "io.delta:delta-core_2.12:2.4.0",
               "${gold_script_path}"
             ]
           }

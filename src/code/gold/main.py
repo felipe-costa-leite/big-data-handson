@@ -25,11 +25,7 @@ spark_config = SparkConf()
 json_config = {
     "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
     "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-    "spark.sql.session.timeZone": "America/Sao_Paulo",
-    "spark.databricks.delta.schema.autoMerge.enabled": "true",
-    "spark.databricks.delta.optimizeWrite.enabled": "true",
-    "spark.databricks.delta.autoCompact.enabled": "true",
-    "spark.databricks.delta.autoCompact.minNumFiles": "5"
+    "spark.sql.session.timeZone": "America/Sao_Paulo"
 }
 
 for k, v in json_config.items():
