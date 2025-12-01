@@ -123,6 +123,7 @@ try:
     df_eventos_stream = (
         spark.readStream
         .option("recursiveFileLookup", "true")
+        .option("multiLine", "false")
         .option("pathGlobFilter", "*.json")
         .format("json")
         .schema(eventos_schema)
