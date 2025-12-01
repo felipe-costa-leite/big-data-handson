@@ -14,14 +14,6 @@ job.init(args["JOB_NAME"], args)
 
 logger = glueContext.get_logger()
 
-
-
-spark.conf.set("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-spark.conf.set(
-    "spark.sql.catalog.spark_catalog",
-    "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-)
-
 bucket = "aws-s3-dados-data-lake"
 
 landing_pedidos_path = f"s3://{bucket}/landing/batch/pedidos/"
