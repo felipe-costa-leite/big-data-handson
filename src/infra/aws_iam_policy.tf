@@ -32,42 +32,6 @@ resource "aws_iam_policy" "aws-iam-policy-firehouse-handson-bigdata" {
   })
 }
 
-resource "aws_iam_policy" "aws-iam-policy-glue-handson-bigdata" {
-  name = "aws-iam-policy-glue-handson-bigdata"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          data.aws_s3_bucket.aws-s3-dados-data-lake.arn,
-          "${data.aws_s3_bucket.aws-s3-dados-data-lake.arn}/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:*"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "glue:*"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
 resource "aws_iam_policy" "aws-iam-policy-emr-instance-profile" {
   name = "aws-iam-policy-emr-instance-profile"
 

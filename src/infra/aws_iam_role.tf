@@ -15,24 +15,6 @@ resource "aws_iam_role" "aws-iam-role-firehouse-handson-bigdata" {
   })
 }
 
-
-resource "aws_iam_role" "aws-iam-role-glue-handson-bigdata" {
-  name = "aws-iam-role-glue-handson-bigdata"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "glue.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
 resource "aws_iam_role" "aws-iam-role-emr-instance-profile" {
   name = "aws-iam-role-emr-instance-profile"
   assume_role_policy = jsonencode({

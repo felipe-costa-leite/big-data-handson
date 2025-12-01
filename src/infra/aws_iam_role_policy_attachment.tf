@@ -3,11 +3,6 @@ resource "aws_iam_role_policy_attachment" "aws-iam-rpa-firehouse-handson-bigdata
   policy_arn = aws_iam_policy.aws-iam-policy-firehouse-handson-bigdata.arn
 }
 
-resource "aws_iam_role_policy_attachment" "aws-iam-rpa-glue-handson-bigdata" {
-  role       = aws_iam_role.aws-iam-role-glue-handson-bigdata.name
-  policy_arn = aws_iam_policy.aws-iam-policy-glue-handson-bigdata.arn
-}
-
 resource "aws_iam_role_policy_attachment" "aws-iam-role-emr-instance-profile-attachment" {
   role       = aws_iam_role.aws-iam-role-emr-instance-profile.name
   policy_arn = aws_iam_policy.aws-iam-policy-emr-instance-profile.arn
@@ -17,7 +12,6 @@ resource "aws_iam_role_policy_attachment" "aws-iam-role-emr-service-profile-atta
   role       = aws_iam_role.aws-iam-role-emr-service-profile.name
   policy_arn = aws_iam_policy.aws-iam-policy-emr-service-profile.arn
 }
-
 
 resource "aws_iam_role_policy_attachment" "aws-iam-role-step-functions-handson-bigdata-attachment" {
   role       = aws_iam_role.aws-iam-role-step-functions-handson-bigdata.name
