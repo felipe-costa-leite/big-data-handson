@@ -82,6 +82,16 @@ visitas_schema = StructType([
 ])
 
 # ============================================================
+# GARANTIR DATABASE NO CATÁLOGO (opcional, mas útil)
+# ============================================================
+try:
+    logger.info("Garantindo existência do database 'bronze' no catálogo.")
+    spark.sql("CREATE DATABASE IF NOT EXISTS silver")
+except Exception as err:
+    logger.exception("Erro ao criar/verificar database 'silver'.")
+    exception_error = err
+
+# ============================================================
 # BATCH: PEDIDOS (CSV landing -> Delta bronze)
 # ============================================================
 try:
@@ -111,6 +121,13 @@ try:
         .option("overwriteSchema", "true")
         .save(bronze_pedidos_path)
     )
+
+    spark.sql("DROP TABLE IF EXISTS bronze.pedidos")
+    spark.sql(f"""
+                CREATE TABLE bronze.pedidos
+                USING DELTA
+                LOCATION '{bronze_pedidos_path}'
+            """)
 
     logger.info("Batch pedidos -> bronze concluído com sucesso.")
 
@@ -153,6 +170,14 @@ try:
     )
 
     query.awaitTermination()
+
+    spark.sql("DROP TABLE IF EXISTS bronze.visitas")
+    spark.sql(f"""
+                    CREATE TABLE bronze.visitas
+                    USING DELTA
+                    LOCATION '{bronze_visitas_path}'
+                """)
+
     logger.info("Streaming visitas -> bronze (availableNow) concluído com sucesso.")
 
 except Exception as err:
