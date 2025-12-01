@@ -3,7 +3,7 @@ resource "aws_sfn_state_machine" "aws-sfn-emr-handson-bigdata" {
   role_arn = aws_iam_role.aws-iam-role-step-functions-handson-bigdata.arn
 
   definition = templatefile(
-    "${path.module}/files/stepfunctions/create_cluster.json",
+    "${path.module}/files/step_functions_handson_bigdata.json",
     {
       emr_release_label        = var.emr_release_label
       emr_log_bucket           = var.emr_log_bucket
