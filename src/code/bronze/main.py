@@ -87,6 +87,8 @@ try:
     df_pedidos_landing = (
         spark.read
         .option("header", "true")
+        .option("recursiveFileLookup", "true")
+        .option("pathGlobFilter", "*.csv")
         .schema(pedidos_schema)
         .csv(landing_pedidos_path)
     )
