@@ -4,6 +4,7 @@ from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 from pyspark.sql.functions import col, to_timestamp
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from datetime import datetime
 
 # ============================================================
 # LOGGING
@@ -44,7 +45,7 @@ spark = (
 # VARIÁVEIS DE CAMINHO
 # ============================================================
 bucket = "aws-s3-dados-data-lake"
-
+date_processing = datetime.now().date().isoformat()
 landing_pedidos_path = f"s3://{bucket}/landing/batch/pedidos/"
 landing_eventos_path = f"s3://{bucket}/landing/streaming/eventos/"
 
@@ -121,6 +122,8 @@ try:
     logger.info(f"Inicializando streaming de eventos a partir de: {landing_eventos_path}")
     df_eventos_stream = (
         spark.readStream
+        .option("recursiveFileLookup", "true")
+        .option("pathGlobFilter", "*.json")
         .format("json")
         .schema(eventos_schema)
         .load(landing_eventos_path)
