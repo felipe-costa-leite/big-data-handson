@@ -54,16 +54,6 @@ gold_path = f"s3://{bucket}/gold/fato_conversao_diaria"
 exception_error = None
 
 # ============================================================
-# GARANTIR DATABASE GOLD NO CATÁLOGO
-# ============================================================
-try:
-    logger.info(f"Garantindo existência do database '{database}' no catálogo.")
-    spark.sql(f"CREATE DATABASE IF NOT EXISTS {database}")
-except Exception as err:
-    logger.exception("Erro ao criar/verificar database 'gold'.")
-    exception_error = err
-
-# ============================================================
 # QUERY DE CONVERSÃO (mantida como no original)
 # ============================================================
 query_conversao = f"""
@@ -123,6 +113,8 @@ CROSS JOIN totais t
 if not exception_error:
     try:
         logger.info("Executando query de conversão para fact_daily_conversion.")
+        logger.info(f"Executando a query: {query_conversao}")
+
         df_conversao = spark.sql(query_conversao)
 
         logger.info(f"Gravando fact_daily_conversion em Delta na camada GOLD: {gold_path}")
