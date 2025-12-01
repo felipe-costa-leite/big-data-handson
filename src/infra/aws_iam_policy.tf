@@ -53,21 +53,14 @@ resource "aws_iam_policy" "aws-iam-policy-glue-handson-bigdata" {
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
+          "logs:*"
         ]
         Resource = "*"
       },
       {
         Effect = "Allow"
         Action = [
-          "glue:GetDatabase",
-          "glue:GetDatabases",
-          "glue:GetTable",
-          "glue:GetTables",
-          "glue:CreateTable",
-          "glue:UpdateTable"
+          "glue:*"
         ]
         Resource = "*"
       }
