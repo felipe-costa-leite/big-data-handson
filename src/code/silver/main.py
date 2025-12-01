@@ -52,10 +52,10 @@ spark = (
 bucket = "aws-s3-dados-data-lake"
 
 bronze_pedidos_path = f"s3://{bucket}/bronze/pedidos"
-bronze_visitas_path = f"s3://{bucket}/bronze/visitas"
+bronze_eventos_path = f"s3://{bucket}/bronze/eventos"
 
 silver_pedidos_path = f"s3://{bucket}/silver/pedidos"
-silver_visitas_path = f"s3://{bucket}/silver/visitas"
+silver_eventos_path = f"s3://{bucket}/silver/eventos"
 
 exception_error = None
 
@@ -120,44 +120,44 @@ if not exception_error:
 # ============================================================
 if not exception_error:
     try:
-        logger.info(f"Lendo visitas da camada bronze: {bronze_visitas_path}")
-        df_visitas_bronze = spark.read.format("delta").load(bronze_visitas_path)
+        logger.info(f"Lendo eventos da camada bronze: {bronze_eventos_path}")
+        df_eventos_bronze = spark.read.format("delta").load(bronze_eventos_path)
 
-        logger.info("Transformando visitas para camada silver.")
+        logger.info("Transformando eventos para camada silver.")
 
-        df_visitas_silver = (
-            df_visitas_bronze
+        df_eventos_silver = (
+            df_eventos_bronze
             .dropDuplicates(["event_time", "cliente_id", "pagina", "session_id"])
             .withColumn(
-                "data_visita",
+                "data_evento",
                 date_format(col("event_time"), "yyyy-MM-dd").cast("date")
             )
         )
 
-        logger.info(f"Gravando visitas na camada silver (Delta): {silver_visitas_path}")
+        logger.info(f"Gravando eventos na camada silver (Delta): {silver_eventos_path}")
 
         (
-            df_visitas_silver.write
+            df_eventos_silver.write
             .format("delta")
             .mode("overwrite")
             .option("overwriteSchema", "true")
-            .partitionBy("data_visita")
-            .save(silver_visitas_path)
+            .partitionBy("data_evento")
+            .save(silver_eventos_path)
         )
 
-        logger.info("Registrando tabela silver.visitas no catálogo usando LOCATION.")
+        logger.info("Registrando tabela silver.eventos no catálogo usando LOCATION.")
 
-        spark.sql("DROP TABLE IF EXISTS silver.visitas")
+        spark.sql("DROP TABLE IF EXISTS silver.eventos")
         spark.sql(f"""
-            CREATE TABLE silver.visitas
+            CREATE TABLE silver.eventos
             USING DELTA
-            LOCATION '{silver_visitas_path}'
+            LOCATION '{silver_eventos_path}'
         """)
 
-        logger.info("Bronze -> Silver: visitas concluído com sucesso.")
+        logger.info("Bronze -> Silver: eventos concluído com sucesso.")
 
     except Exception as err:
-        logger.exception("Erro no processamento bronze -> silver para visitas.")
+        logger.exception("Erro no processamento bronze -> silver para eventos.")
         if not exception_error:
             exception_error = err
 

@@ -46,13 +46,13 @@ spark = (
 bucket = "aws-s3-dados-data-lake"
 
 landing_pedidos_path = f"s3://{bucket}/landing/batch/pedidos/"
-landing_visitas_path = f"s3://{bucket}/landing/streaming/visitas/"
+landing_eventos_path = f"s3://{bucket}/landing/streaming/eventos/"
 
 bronze_pedidos_path = f"s3://{bucket}/bronze/pedidos"
-bronze_visitas_path = f"s3://{bucket}/bronze/visitas"
+bronze_eventos_path = f"s3://{bucket}/bronze/eventos"
 
-checkpoint_visitas_path = f"s3://{bucket}/landing/checkpoints/bronze/visitas/"
-schema_visitas_path = f"s3://{bucket}/landing/schema/bronze/visitas/"
+checkpoint_eventos_path = f"s3://{bucket}/landing/checkpoints/bronze/eventos/"
+schema_eventos_path = f"s3://{bucket}/landing/schema/bronze/eventos/"
 
 exception_error = None
 
@@ -68,7 +68,7 @@ pedidos_schema = StructType([
     StructField("valor_total", StringType(), True),
 ])
 
-visitas_schema = StructType([
+eventos_schema = StructType([
     StructField("event_time", StringType(), True),
     StructField("cliente_id", IntegerType(), True),
     StructField("pagina", StringType(), True),
@@ -118,12 +118,19 @@ try:
         .save(bronze_pedidos_path)
     )
 
-    spark.sql("DROP TABLE IF EXISTS bronze.pedidos")
-    spark.sql(f"""
+    query = """DROP TABLE IF EXISTS bronze.pedidos"""
+
+    logger.info(f"QueryDropTable: {query}")
+
+    spark.sql(query)
+
+    query = f"""
                 CREATE TABLE bronze.pedidos
                 USING DELTA
                 LOCATION '{bronze_pedidos_path}'
-            """)
+            """
+
+    spark.sql(query)
 
     logger.info("Batch pedidos -> bronze concluído com sucesso.")
 
@@ -135,49 +142,56 @@ except Exception as err:
 # STREAMING (availableNow): VISITAS (JSON landing -> Delta bronze)
 # ============================================================
 try:
-    logger.info(f"Inicializando streaming de visitas a partir de: {landing_visitas_path}")
+    logger.info(f"Inicializando streaming de eventos a partir de: {landing_eventos_path}")
 
-    df_visitas_stream = (
+    df_eventos_stream = (
         spark.readStream
         .format("json")
-        .schema(visitas_schema)
-        .load(landing_visitas_path)
+        .schema(eventos_schema)
+        .load(landing_eventos_path)
     )
 
-    df_visitas_bronze = (
-        df_visitas_stream
+    df_eventos_bronze = (
+        df_eventos_stream
         .withColumn("event_time", to_timestamp(col("event_time")))
         .withColumn("cliente_id", col("cliente_id").cast("int"))
     )
 
     logger.info(
-        f"Gravando visitas em Delta na bronze com availableNow, "
-        f"checkpoint em {checkpoint_visitas_path}"
+        f"Gravando eventos em Delta na bronze com availableNow, "
+        f"checkpoint em {checkpoint_eventos_path}"
     )
 
     query = (
-        df_visitas_bronze.writeStream
+        df_eventos_bronze.writeStream
         .format("delta")
-        .option("checkpointLocation", checkpoint_visitas_path)
+        .option("checkpointLocation", checkpoint_eventos_path)
         .option("mergeSchema", "true")
         .outputMode("append")
         .trigger(availableNow=True)
-        .start(bronze_visitas_path)
+        .start(bronze_eventos_path)
     )
 
     query.awaitTermination()
 
-    spark.sql("DROP TABLE IF EXISTS bronze.visitas")
-    spark.sql(f"""
-                    CREATE TABLE bronze.visitas
-                    USING DELTA
-                    LOCATION '{bronze_visitas_path}'
-                """)
+    query = """DROP TABLE IF EXISTS bronze.eventos"""
 
-    logger.info("Streaming visitas -> bronze (availableNow) concluído com sucesso.")
+    logger.info(f"QueryDropTable: {query}")
+
+    spark.sql(query)
+
+    query = f"""
+                    CREATE TABLE bronze.eventos
+                    USING DELTA
+                    LOCATION '{bronze_eventos_path}'
+                """
+
+    spark.sql(query)
+
+    logger.info("Streaming eventos -> bronze (availableNow) concluído com sucesso.")
 
 except Exception as err:
-    logger.exception("Erro no streaming de visitas.")
+    logger.exception("Erro no streaming de eventos.")
     if not exception_error:
         exception_error = err
 
