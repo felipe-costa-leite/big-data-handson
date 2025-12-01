@@ -36,6 +36,7 @@ json_config = {
 for k, v in json_config.items():
     spark_config.set(key=k, value=v)
 
+
 spark = (
     SparkSession.builder
     .appName("emr-landing-to-bronze")
@@ -56,7 +57,7 @@ bronze_pedidos_path = f"s3://{bucket}/bronze/pedidos"
 bronze_visitas_path = f"s3://{bucket}/bronze/visitas"
 
 checkpoint_visitas_path = f"s3://{bucket}/landing/checkpoints/bronze/visitas/"
-schema_visitas_path = f"s3://{bucket}/landing/schema/bronze/visitas/"
+schema_visitas_path     = f"s3://{bucket}/landing/schema/bronze/visitas/"
 
 exception_error = None
 
@@ -65,21 +66,22 @@ exception_error = None
 # ============================================================
 
 pedidos_schema = StructType([
-    StructField("pedido_id", StringType(), True),
-    StructField("data_pedido", StringType(), True),
-    StructField("cliente_id", StringType(), True),
-    StructField("canal_venda", StringType(), True),
-    StructField("valor_total", StringType(), True),
+    StructField("pedido_id",    StringType(), True),
+    StructField("data_pedido",  StringType(), True),
+    StructField("cliente_id",   StringType(), True),
+    StructField("canal_venda",  StringType(), True),
+    StructField("valor_total",  StringType(), True),
 ])
 
 visitas_schema = StructType([
-    StructField("event_time", StringType(), True),
-    StructField("cliente_id", IntegerType(), True),
-    StructField("pagina", StringType(), True),
-    StructField("canal", StringType(), True),
+    StructField("event_time",  StringType(), True),
+    StructField("cliente_id",  IntegerType(), True),
+    StructField("pagina",      StringType(), True),
+    StructField("canal",       StringType(), True),
     StructField("dispositivo", StringType(), True),
-    StructField("session_id", StringType(), True),
+    StructField("session_id",  StringType(), True),
 ])
+
 
 # ============================================================
 # BATCH: PEDIDOS (CSV landing -> Delta bronze)
@@ -124,6 +126,7 @@ except Exception as err:
 try:
     logger.info(f"Inicializando streaming de visitas a partir de: {landing_visitas_path}")
 
+
     df_visitas_stream = (
         spark.readStream
         .format("json")
@@ -159,6 +162,7 @@ except Exception as err:
     logger.exception("Erro no streaming de visitas.")
     if not exception_error:
         exception_error = err
+
 
 if exception_error:
     logger.error("Erro detectado no pipeline, encerrando com falha.")
